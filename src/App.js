@@ -1,40 +1,34 @@
-import React, {Component} from 'react';
+import { useState, useCallback, memo } from 'react'
 import TodoListTemplate from './components/TodoListTemplate'
 import Form from './components/Form'
 import TodoItemList from './components/TodoItemList'
 
-class App extends Component {
-  
-  id = 0;
-  state = {
-    input: '',
-    todos: []
-  }
-  handleChange = (e) => {
-    this.setState({
-      input: e.target.value
-    });
-  }
+let id = 0;
 
-  handleCreate = () => {
-    const { input, todos } = this.state;
-    this.setState({
-      input: '',
-      todos: todos.concat({
-        id: this.id++,
-        text: input,
-        checked: false
-      })
-    });
-  }
+const App = () => {
+  const [input, setInput] = useState('');
+  const [todos, setTodos] = useState([]);
 
-  handleKeyPress = (e) => {
+  const handleChange = useCallback((e) => {
+    setInput(e.target.value);
+  }, []);
+
+  const handleCreate = useCallback(() => {
+    setInput('');
+    setTodos(todos.concat({
+      id: id++,
+      text: input,
+      checked: false
+    }));
+  }, [todos, input]);
+
+  const handleKeyPress = useCallback((e) => {
     if(e.key === 'Enter') {
-      this.handleCreate();
+      handleCreate();
     }
-  }
-  handleToggle = (id) => {
-    const { todos } = this.state;
+  }, [handleCreate]);
+
+  const handleToggle = useCallback((id) => {
     const index = todos.findIndex(todo => todo.id === id);
     const selected = todos[index];
 
@@ -43,42 +37,29 @@ class App extends Component {
     nextTodos[index] = {
       ...selected,
       checked: !selected.checked
-    };
+    }
+    setTodos(nextTodos);
+  },[todos]);
+    
 
-    this.setState({
-      todos: nextTodos
-    });
-  }
+  const handleRemove = useCallback((id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  },[todos]);
 
-  handleRemove = (id) => {
-    const { todos } = this.state;
-    this.setState({
-      todos: todos.filter(todo => todo.id !== id)
-    });
-  }
-  
-  
-  render() {
-    const { input, todos } = this.state;
-    const {
-      handleChange,
-      handleCreate,
-      handleKeyPress,
-      handleToggle,
-      handleRemove
-    } = this;
-    return (
-      <TodoListTemplate form={(
-      <Form
-        value={input}
-        onKeyPress={handleKeyPress}
-        onChange={handleChange}
-        onCreate={handleCreate}
-      />)}>
+  const todoListForm = (
+    <Form 
+      value = {input}
+      onKeyPress = {handleKeyPress}
+      onChange = {handleChange}
+      onCreate = {handleCreate}
+    />
+  );
+  return (
+    <TodoListTemplate form={todoListForm}>
         <TodoItemList todos={todos} onToggle={handleToggle} onRemove={handleRemove}/>
-      </TodoListTemplate>
-    );
-  }
+    </TodoListTemplate>
+  );
+
 }
 
-export default App;
+export default memo(App);

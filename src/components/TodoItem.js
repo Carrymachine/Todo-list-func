@@ -1,16 +1,16 @@
-import React, {Component} from 'react';
 import './TodoItem.css';
+import {memo, useCallback} from 'react';
 
-class TodoItem extends Component {
-    render() {
-        const {text, checked, id, onToggle, onRemove} = this.props;
+const TodoItem = (props) => {
+    const {text, checked, id, onToggle, onRemove} = props;
 
-        return (
-            <div className="todo-item" onClick={() => onToggle(id)}>
-                <div className="remove" onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(id)
-                }}> &times; </div>
+    const handleRemove = useCallback((e) => {
+        e.stopPropagation();
+        onRemove(id);
+    }, [id, onRemove]);
+    return (
+        <div className="todo-item" onClick={() => onToggle(id)}>
+                <div className="remove" onClick={handleRemove}> &times; </div>
                 <div className={`todo-text ${checked && 'checked'}`}>
                     <div>{text}</div>
                 </div>
@@ -18,8 +18,7 @@ class TodoItem extends Component {
                     checked && (<div className="check-mark">✓</div>)
                 }
             </div>
-        );
-    }
+    );
 }
 
-export default TodoItem;
+export default memo(TodoItem);
